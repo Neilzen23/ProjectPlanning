@@ -1,4 +1,4 @@
-package com.detorres.app.ProjectPlanning;
+package com.detorres.ProjectPlanning;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
