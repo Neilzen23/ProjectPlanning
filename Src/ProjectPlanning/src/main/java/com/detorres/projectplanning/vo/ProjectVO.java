@@ -2,16 +2,16 @@ package com.detorres.projectplanning.vo;
 
 import java.util.List;
 
-public class ProjectVO {
-	
+public class ProjectVO extends VO<ProjectVO> {
+
 	private long duration;
-	
+
 	private String endDate;
-	
+
 	private String name;
-	
+
 	private String startDate;
-	
+
 	private List<TaskVO> tasks;
 
 	public long getDuration() {
@@ -53,6 +53,5 @@ public class ProjectVO {
 	public void setTasks(List<TaskVO> tasks) {
 		this.tasks = tasks;
 	}
-	
-	
+
 }

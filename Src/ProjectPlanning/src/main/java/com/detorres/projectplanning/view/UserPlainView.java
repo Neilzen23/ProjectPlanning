@@ -1,20 +1,20 @@
 package com.detorres.projectplanning.view;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.detorres.projectplanning.constants.ViewConstants;
-import com.detorres.projectplanning.controller.ProjectController;
-import com.detorres.projectplanning.controller.ProjectControllerImpl;
-import com.detorres.projectplanning.controller.TaskController;
-import com.detorres.projectplanning.controller.TaskControllorImpl;
+import com.detorres.projectplanning.controller.AppController;
+import com.detorres.projectplanning.controller.AppControllerImpl;
+import com.detorres.projectplanning.entity.UserPreference;
+import com.detorres.projectplanning.utility.DateUtility;
+import com.detorres.projectplanning.vo.ProjectVO;
 
 public class UserPlainView extends AbstractView {
 
-	private ProjectController projectController;
-
-	private TaskController taskController;
+	private AppController appController;
 
 	public UserPlainView() {
-		this.projectController = new ProjectControllerImpl();
-		this.taskController = new TaskControllorImpl();
+		this.appController = new AppControllerImpl();
 	}
 
 	@Override
@@ -29,17 +29,63 @@ public class UserPlainView extends AbstractView {
 
 	@Override
 	protected void userActions() {
-		String input = super.captureUserInput().toLowerCase();
+
 		while (true) {
-			if (input.equals(ViewConstants.OPTION_1)) {
+			this.displayOptions(ViewConstants.OPTIONS_PROJECT);
+			String input = super.captureUserInput().toLowerCase();
 
-			} else if (input.equals(ViewConstants.OPTION_2)) {
+			if (input.equals(ViewConstants.OPTION_PROJECT_VIEW_ALL)) {
 
+			} else if (input.equals(ViewConstants.OPTION_PROJECT_CREATE)) {
+				this.displayOutput("\n\n");
+				this.createProject();
+				this.displayOutput("\n\n");
 			} else if (input.equals(ViewConstants.OPTION_END)) {
-				displayOutput(ViewConstants.END_DISPLAY);
+				this.displayOutput(ViewConstants.END_DISPLAY);
 				break;
+			} else {
+				this.displayOutput(ViewConstants.INVALID_OPTION);
+			}
+
+		}
+	}
+
+	private void createProject() {
+
+		this.displayOutput(ViewConstants.HEAD_CREATE_PROJECT);
+
+		ProjectVO projectVO = new ProjectVO();
+		while (true) {
+			this.displayOutput("\n\n");
+			this.displayOutput(ViewConstants.FIELD_PROJECT_NAME);
+			String input = super.captureUserInput();
+			if (StringUtils.isEmpty(input)) {
+				this.displayOutput(ViewConstants.INVALID_NAME_LENGTH);
+			} else if (input.length() < 3 || 15 < input.length()) {
+				this.displayOutput(ViewConstants.INVALID_NAME_LENGTH);
+			} else if (StringUtils.isAlphanumericSpace(input)) {
+				projectVO.setName(input);
+				break;
+			} else {
+				this.displayOutput(ViewConstants.INVALID_ALPHA_NUMBERIC);
 			}
 		}
+
+		while (true) {
+			this.displayOutput("\n\n");
+			this.displayOutput(ViewConstants.FIELD_PROJECT_START_DATE + " " + UserPreference.getInstance().getDateFormat());
+			String input = super.captureUserInput();
+
+			if (StringUtils.isEmpty(input)) {
+				this.displayOutput(ViewConstants.INVALID_EMPTY);
+			} else if (DateUtility.getInstance().isValidDate(input)) {
+				projectVO.setStartDate(input);
+				break;
+			} else {
+				this.displayOutput(ViewConstants.INVALID_DATE_INPUT);
+			}
+		}
+
 	}
 
 	@Override
@@ -54,8 +100,8 @@ public class UserPlainView extends AbstractView {
 
 	@Override
 	protected void displayOptions(String[] options) {
-		for (String option : options) {
-			this.displayOutput(option);
+		for (int x = 0; x < options.length; x++) {
+			this.displayOutput("[" + (x + 1) + "] " + options[x]);
 		}
 
 		this.displayOutput(ViewConstants.SELECT_OPTION);

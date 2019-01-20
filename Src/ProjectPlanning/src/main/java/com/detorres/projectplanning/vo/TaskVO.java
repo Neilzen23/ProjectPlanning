@@ -1,10 +1,11 @@
 package com.detorres.projectplanning.vo;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-public class TaskVO {
+public class TaskVO extends VO<TaskVO> {
 
-	private List<TaskVO> dependentVOs;
+	private Map<Integer, TaskVO> dependentVOs = new HashMap<Integer, TaskVO>();
 
 	private long duration;
 
@@ -12,7 +13,9 @@ public class TaskVO {
 
 	private String startDate;
 
-	public List<TaskVO> getDependentVOs() {
+	private boolean complete;
+
+	public Map<Integer, TaskVO> getDependentVOs() {
 		return dependentVOs;
 	}
 
@@ -28,7 +31,7 @@ public class TaskVO {
 		return startDate;
 	}
 
-	public void setDependentVOs(List<TaskVO> dependentVOs) {
+	public void setDependentVOs(Map<Integer, TaskVO> dependentVOs) {
 		this.dependentVOs = dependentVOs;
 	}
 
@@ -42,6 +45,14 @@ public class TaskVO {
 
 	public void setStartDate(String startDate) {
 		this.startDate = startDate;
+	}
+
+	public boolean isComplete() {
+		return complete;
+	}
+
+	public void setComplete(boolean complete) {
+		this.complete = complete;
 	}
 
 }

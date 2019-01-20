@@ -3,7 +3,7 @@ package com.detorres.projectplanning.dao;
 import java.util.List;
 import java.util.Map;
 
-public interface SubTaskMappingDao {
+public interface MappingDao {
 
 	public List<Integer> getMappingById(int id);
 
@@ -11,8 +11,10 @@ public interface SubTaskMappingDao {
 
 	public void removeMappingById(int id);
 
-	public void addMapping(int id, List<Integer> subTasks);
+	public void addMapping(int parentId, int subId);
 
-	public void removeDependentTasks(int id, int subTaskId);
+	public void removeDependentTasks(int parentId, int subId);
+
+	public boolean containsMapping(int id);
 
 }

@@ -16,6 +16,7 @@ public class App implements CommandLineRunner {
 		app.run(args);
 	}
 
+	@Override
 	public void run(String... arg0) throws Exception {
 		AppLoader app = new AppLoader();
 		app.startApp();
