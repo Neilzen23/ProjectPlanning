@@ -11,42 +11,42 @@ public class UserPreference {
 
 	private static final UserPreference instance = new UserPreference();
 
-	private int daysPerWeek = DefaultValConstants.DEFAULT_NUM_DAYS_PER_WEEK;
-
-	private int hoursPerDay = DefaultValConstants.DEFAULT_NUM_OF_HRS_PER_DAY;
-
-	private String dateFormat = DefaultValConstants.DEFAULT_DATE_FORMAT;
-
-	private UserPreference() {
-
-	}
-
 	public static UserPreference getInstance() {
 		return instance;
 	}
 
-	public int getDaysPerWeek() {
-		return daysPerWeek;
-	}
+	private String dateFormat = DefaultValConstants.DEFAULT_DATE_FORMAT;
 
-	public void setDaysPerWeek(int daysPerWeek) {
-		this.daysPerWeek = daysPerWeek;
-	}
+	private int defaultDurationFormat = DefaultValConstants.DEFAULT_DURATION_HRS;
 
-	public int getHoursPerDay() {
-		return hoursPerDay;
-	}
+	private int hoursPerDay = DefaultValConstants.DEFAULT_NUM_OF_HRS_PER_DAY;
 
-	public void setHoursPerDay(int hoursPerDay) {
-		this.hoursPerDay = hoursPerDay;
+	private UserPreference() {
+
 	}
 
 	public String getDateFormat() {
 		return dateFormat;
 	}
 
+	public int getDefaultDurationFormat() {
+		return defaultDurationFormat;
+	}
+
+	public int getHoursPerDay() {
+		return hoursPerDay;
+	}
+
 	public void setDateFormat(String dateFormat) {
 		this.dateFormat = dateFormat;
+	}
+
+	public void setDefaultDurationFormat(int defaultDurationFormat) {
+		this.defaultDurationFormat = defaultDurationFormat;
+	}
+
+	public void setHoursPerDay(int hoursPerDay) {
+		this.hoursPerDay = hoursPerDay;
 	}
 
 }

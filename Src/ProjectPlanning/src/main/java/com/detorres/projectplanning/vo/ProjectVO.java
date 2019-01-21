@@ -1,10 +1,10 @@
 package com.detorres.projectplanning.vo;
 
-import java.util.List;
+import org.apache.commons.collections4.map.LinkedMap;
 
-public class ProjectVO extends VO<ProjectVO> {
+public class ProjectVO {
 
-	private long duration;
+	private String duration;
 
 	private String endDate;
 
@@ -12,14 +12,22 @@ public class ProjectVO extends VO<ProjectVO> {
 
 	private String startDate;
 
-	private List<TaskVO> tasks;
+	private String status;
 
-	public long getDuration() {
+	private LinkedMap<Integer, TaskVO> branches = new LinkedMap<Integer, TaskVO>();
+
+	int id;
+
+	public String getDuration() {
 		return duration;
 	}
 
 	public String getEndDate() {
 		return endDate;
+	}
+
+	public int getId() {
+		return id;
 	}
 
 	public String getName() {
@@ -30,16 +38,16 @@ public class ProjectVO extends VO<ProjectVO> {
 		return startDate;
 	}
 
-	public List<TaskVO> getTasks() {
-		return tasks;
-	}
-
-	public void setDuration(long duration) {
+	public void setDuration(String duration) {
 		this.duration = duration;
 	}
 
 	public void setEndDate(String endDate) {
 		this.endDate = endDate;
+	}
+
+	public void setId(int id) {
+		this.id = id;
 	}
 
 	public void setName(String name) {
@@ -50,8 +58,29 @@ public class ProjectVO extends VO<ProjectVO> {
 		this.startDate = startDate;
 	}
 
-	public void setTasks(List<TaskVO> tasks) {
-		this.tasks = tasks;
+	public boolean hasBranches() {
+		return !branches.isEmpty();
+	}
+
+	public LinkedMap<Integer, TaskVO> getBranches() {
+		return branches;
+	}
+
+	public void setBranches(LinkedMap<Integer, TaskVO> branches) {
+		this.branches = branches;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	@Override
+	public String toString() {
+		return this.getName() + " " + this.getDuration() + " [" + this.getStartDate() + " -> " + this.getEndDate() + "] - " + this.getStatus();
 	}
 
 }

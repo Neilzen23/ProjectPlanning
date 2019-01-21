@@ -1,28 +1,36 @@
 package com.detorres.projectplanning.entity;
 
 import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
+
+import org.apache.commons.collections4.map.LinkedMap;
+
+import com.detorres.projectplanning.constants.DefaultValConstants;
 
 public class Project {
 
 	private static int idCounter = 0;
 
-	private int id;
+	private LinkedMap<Integer, Task> branches = new LinkedMap<Integer, Task>();
 
 	private long duration;
 
 	private Date endDate;
 
+	private int id;
+
 	private String projectName;
 
 	private Date startDate;
 
-	private Map<Integer, Task> tasks = new LinkedHashMap<Integer, Task>();
+	private int status;
 
 	public Project() {
 		idCounter++;
 		id = idCounter;
+	}
+
+	public LinkedMap<Integer, Task> getBranches() {
+		return branches;
 	}
 
 	public long getDuration() {
@@ -45,8 +53,28 @@ public class Project {
 		return startDate;
 	}
 
-	public Map<Integer, Task> getTasks() {
-		return tasks;
+	public int getStatus() {
+		return status;
+	}
+
+	public boolean hasBranches() {
+		return !branches.isEmpty();
+	}
+
+	public boolean inProgress() {
+		return status == DefaultValConstants.STATUS_IN_PROGRESS;
+	}
+
+	public boolean isComplete() {
+		return status == DefaultValConstants.STATUS_COMPLETE;
+	}
+
+	public boolean isWaiting() {
+		return status == DefaultValConstants.STATUS_WAITING;
+	}
+
+	public void setBranches(LinkedMap<Integer, Task> branches) {
+		this.branches = branches;
 	}
 
 	public void setDuration(long duration) {
@@ -69,8 +97,8 @@ public class Project {
 		this.startDate = startDate;
 	}
 
-	public void setTasks(Map<Integer, Task> tasks) {
-		this.tasks = tasks;
+	public void setStatus(int status) {
+		this.status = status;
 	}
 
 }

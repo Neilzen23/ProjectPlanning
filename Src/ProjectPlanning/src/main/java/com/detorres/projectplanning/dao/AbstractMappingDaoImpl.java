@@ -53,4 +53,9 @@ public class AbstractMappingDaoImpl implements MappingDao {
 	public boolean containsMapping(int id) {
 		return mappingData.containsKey(id);
 	}
+
+	@Override
+	public void removeValueFromKey(int key, int value) {
+		mappingData.get(key).remove(mappingData.get(key).indexOf(value));
+	}
 }

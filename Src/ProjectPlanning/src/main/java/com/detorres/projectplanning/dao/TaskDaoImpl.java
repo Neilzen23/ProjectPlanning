@@ -4,6 +4,7 @@ import java.util.Date;
 
 import org.apache.commons.collections4.map.LinkedMap;
 
+import com.detorres.projectplanning.constants.DefaultValConstants;
 import com.detorres.projectplanning.entity.Task;
 
 public class TaskDaoImpl implements TaskDao {
@@ -17,7 +18,7 @@ public class TaskDaoImpl implements TaskDao {
 
 	@Override
 	public void completeTask(int id) {
-		taskData.get(Integer.valueOf(id)).setStatus(3);
+		taskData.get(Integer.valueOf(id)).setStatus(DefaultValConstants.STATUS_COMPLETE);
 	}
 
 	@Override
@@ -35,6 +36,10 @@ public class TaskDaoImpl implements TaskDao {
 
 		Task task = new Task();
 		Task data = taskData.get(Integer.valueOf(id));
+
+		if (data == null) {
+			return null;
+		}
 
 		copyTask(task, data);
 
@@ -57,11 +62,19 @@ public class TaskDaoImpl implements TaskDao {
 		t1.setParentTaskId(t2.getParentTaskId());
 		t1.setStatus(t2.getStatus());
 		t1.setDuration(t2.getDuration());
+		t1.setStartDate(t2.getStartDate());
+		t1.setEndDate(t2.getEndDate());
 	}
 
 	@Override
 	public void removeTask(int id) {
-		taskData.remove(id);
+		int index = taskData.indexOf(id);
+		taskData.remove(index);
+	}
+
+	@Override
+	public void removeHours(int id) {
+		taskData.get(Integer.valueOf(id)).setDuration(0);
 	}
 
 	@Override

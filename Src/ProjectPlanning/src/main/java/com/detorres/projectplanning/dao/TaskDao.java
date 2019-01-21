@@ -22,4 +22,6 @@ public interface TaskDao {
 
 	public void updateStatus(int id, int status);
 
+	public void removeHours(int id);
+
 }

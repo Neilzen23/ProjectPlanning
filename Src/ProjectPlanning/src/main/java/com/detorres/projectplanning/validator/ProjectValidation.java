@@ -5,13 +5,10 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import com.detorres.projectplanning.constants.DefaultValConstants;
 import com.detorres.projectplanning.constants.ValidatorConstants;
 import com.detorres.projectplanning.dao.ProjectDao;
 import com.detorres.projectplanning.dao.ProjectDaoImpl;
-import com.detorres.projectplanning.dao.ProjectMappingDao;
-import com.detorres.projectplanning.dao.ProjectTaskMappingDao;
-import com.detorres.projectplanning.dao.TaskDao;
-import com.detorres.projectplanning.dao.TaskDaoImpl;
 import com.detorres.projectplanning.entity.Project;
 import com.detorres.projectplanning.service.TaskManagementService;
 import com.detorres.projectplanning.service.TaskManagementServiceImpl;
@@ -20,18 +17,12 @@ import com.detorres.projectplanning.utility.DateUtility;
 public class ProjectValidation<T> implements InterfaceValidation<T> {
 
 	private ProjectDao projectDao;
-	private ProjectMappingDao projectMappingDao;
-	private ProjectTaskMappingDao projectTaskMappingDao;
-	private TaskDao taskDao;
 	private TaskManagementService taskManagementService;
 
 	private List<String> errors = new ArrayList<String>();
 
 	public ProjectValidation() {
 		this.projectDao = new ProjectDaoImpl();
-		this.projectMappingDao = new ProjectMappingDao();
-		this.projectTaskMappingDao = new ProjectTaskMappingDao();
-		this.taskDao = new TaskDaoImpl();
 		this.taskManagementService = new TaskManagementServiceImpl();
 	}
 
@@ -65,14 +56,22 @@ public class ProjectValidation<T> implements InterfaceValidation<T> {
 		List<Project> projects = projectDao.getAllProject();
 
 		if (!projects.isEmpty()) {
+			Project lastProject = projects.get(projects.size() - 1);
 
-			Date lastEndDate = taskManagementService.getProjectEndDate(projects.get(projects.size() - 1).getId());
+			if (lastProject.getStatus() != DefaultValConstants.STATUS_COMPLETE) {
+				errors.add(ValidatorConstants.INVALID_PROJECT_ADD);
+				return errors;
+			}
 
-			if (lastEndDate.compareTo(dataProject.getStartDate()) > 0) {
+			if (lastProject.hasBranches()) {
+				Date lastEndDate = taskManagementService.getProjectEndDate(projects.get(projects.size() - 1).getId());
 
-				errors.add(this.convertArgumentedConstant(ValidatorConstants.INVALID_PROJECT_START_DATE,
-						Arrays.asList(DateUtility.getInstance().formatDate(dataProject.getStartDate()))));
+				if (lastEndDate.compareTo(dataProject.getStartDate()) > 0) {
 
+					errors.add(this.convertArgumentedConstant(ValidatorConstants.INVALID_PROJECT_START_DATE,
+							Arrays.asList(DateUtility.getInstance().formatDate(dataProject.getStartDate()))));
+
+				}
 			}
 
 		}
@@ -83,7 +82,7 @@ public class ProjectValidation<T> implements InterfaceValidation<T> {
 	private String convertArgumentedConstant(String error, List<String> val) {
 
 		for (int x = 0; x < val.size(); x++) {
-			error.replace("{" + x + "}", val.get(x));
+			error.replace("{" + x + "}", "{" + val.get(x) + "}");
 		}
 
 		return error;

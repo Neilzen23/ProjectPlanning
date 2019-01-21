@@ -12,4 +12,6 @@ public interface ProjectDao {
 
 	public List<Project> getAllProject();
 
+	public void updateStatus(int id);
+
 }

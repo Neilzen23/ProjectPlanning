@@ -12,4 +12,8 @@ public class ValidatorConstants {
 
 	public static final String INVALID_REMOVE_TASK = "Task is already completed and cant be removed";
 
+	public static final String INVALID_TASK_EXIST = "Task Name Already Exist";
+
+	public static final String INVALID_PROJECT_ADD = "Project can't be added because previous project(s) are not yet completed.";
+
 }

@@ -17,4 +17,6 @@ public interface MappingDao {
 
 	public boolean containsMapping(int id);
 
+	public void removeValueFromKey(int key, int value);
+
 }

@@ -1,10 +1,9 @@
 package com.detorres.ProjectPlanning;
 
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
+import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.commons.lang3.time.DateUtils;
 
 import com.detorres.projectplanning.constants.DefaultValConstants;
@@ -52,12 +51,12 @@ public class TaskManagementServiceTest extends TestCase {
 
 		taskManagementService.createProject(testProject);
 
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			if (task.hasParentTask()) {
 				Task parentTask = new Task();
 				parentTask.setId(task.getParentTaskId());
 				task.setParentProjectId(testProject.getId());
-				task.setStatus(DefaultValConstants.TASK_STATUS_UNDEFINED);
+				task.setStatus(DefaultValConstants.STATUS_UNDEFINED);
 				taskManagementService.createTask(parentTask, task);
 			} else {
 				task.setParentProjectId(testProject.getId());
@@ -78,12 +77,12 @@ public class TaskManagementServiceTest extends TestCase {
 
 		taskManagementService.createProject(testProject);
 
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			if (task.hasParentTask()) {
 				Task parentTask = new Task();
 				parentTask.setId(task.getParentTaskId());
 				task.setParentProjectId(testProject.getId());
-				task.setStatus(DefaultValConstants.TASK_STATUS_UNDEFINED);
+				task.setStatus(DefaultValConstants.STATUS_UNDEFINED);
 				taskManagementService.createTask(parentTask, task);
 			} else {
 				task.setParentProjectId(testProject.getId());
@@ -104,9 +103,7 @@ public class TaskManagementServiceTest extends TestCase {
 
 		taskManagementService.createProject(testProject);
 
-		int index = 0;
-		for (Task task : this.project.getTasks().values()) {
-			index++;
+		for (Task task : this.project.getBranches().values()) {
 			if (!task.hasParentTask()) {
 				task.setParentProjectId(testProject.getId());
 				taskManagementService.createTask(task, testProject.getId());
@@ -125,16 +122,16 @@ public class TaskManagementServiceTest extends TestCase {
 		taskManagementService.createProject(testProject);
 
 		int index = 0;
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			index++;
 			if (!task.hasParentTask()) {
 				task.setParentProjectId(testProject.getId());
 				if (index == 0) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_COMPLETE);
+					task.setStatus(DefaultValConstants.STATUS_COMPLETE);
 				}
 
 				if (index == 1) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_IN_PROGRESS);
+					task.setStatus(DefaultValConstants.STATUS_IN_PROGRESS);
 				}
 
 				taskManagementService.createTask(task, testProject.getId());
@@ -154,16 +151,16 @@ public class TaskManagementServiceTest extends TestCase {
 
 		int index = 0;
 		int taskId = 0;
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			index++;
 			if (!task.hasParentTask()) {
 				task.setParentProjectId(testProject.getId());
 				if (index == 0) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_COMPLETE);
+					task.setStatus(DefaultValConstants.STATUS_COMPLETE);
 				}
 
 				if (index == 1) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_IN_PROGRESS);
+					task.setStatus(DefaultValConstants.STATUS_IN_PROGRESS);
 				}
 
 				if (index == 3) {
@@ -178,6 +175,48 @@ public class TaskManagementServiceTest extends TestCase {
 		assertTrue(ValidatorConstants.INVALID_TASK_INCOMPLETE.equals(errors.get(0)));
 	}
 
+	public void testCompleteToNextTask() {
+		Project testProject = new Project();
+		this.copyProject(this.project, testProject);
+
+		taskManagementService.createProject(testProject);
+
+		int index = 0;
+		int id = 0;
+		for (Task task : this.project.getBranches().values()) {
+			index++;
+			if (task.hasParentTask()) {
+				if (index == 1 || index == 2 || index == 5 || index == 14 || index == 7 || index == 9 || index == 10 || index == 13) {
+					Task parentTask = new Task();
+					parentTask.setId(task.getParentTaskId());
+					task.setParentProjectId(testProject.getId());
+					if (index == 14) {
+						task.setStatus(DefaultValConstants.STATUS_IN_PROGRESS);
+					} else if (index == 16 || index == 6 || index == 12) {
+						task.setStatus(DefaultValConstants.STATUS_WAITING);
+					} else {
+						task.setStatus(DefaultValConstants.STATUS_COMPLETE);
+					}
+
+					taskManagementService.createTask(parentTask, task);
+				}
+			} else {
+
+				if (index == 2) {
+					id = task.getId();
+				}
+				task.setParentProjectId(testProject.getId());
+
+				taskManagementService.createTask(task, testProject.getId());
+
+			}
+		}
+
+		Task task = taskManagementService.getCurrentTaskOfProject(testProject.getId());
+		taskManagementService.completeTask(task.getId());
+		assertTrue(taskManagementService.loadTask(id).getStatus() == DefaultValConstants.STATUS_IN_PROGRESS);
+	}
+
 	public void testCompleteNextTask() {
 		Project testProject = new Project();
 		this.copyProject(this.project, testProject);
@@ -185,18 +224,18 @@ public class TaskManagementServiceTest extends TestCase {
 		taskManagementService.createProject(testProject);
 
 		int index = 0;
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			index++;
 			if (task.hasParentTask()) {
 				Task parentTask = new Task();
 				parentTask.setId(task.getParentTaskId());
 				task.setParentProjectId(testProject.getId());
 				if (index == 19) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_IN_PROGRESS);
+					task.setStatus(DefaultValConstants.STATUS_IN_PROGRESS);
 				} else if (index == 16 || index == 6 || index == 12) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_WAITING);
+					task.setStatus(DefaultValConstants.STATUS_WAITING);
 				} else {
-					task.setStatus(DefaultValConstants.TASK_STATUS_COMPLETE);
+					task.setStatus(DefaultValConstants.STATUS_COMPLETE);
 				}
 
 				taskManagementService.createTask(parentTask, task);
@@ -219,18 +258,16 @@ public class TaskManagementServiceTest extends TestCase {
 		taskManagementService.createProject(testProject);
 
 		int index = 0;
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			index++;
 			if (task.hasParentTask()) {
 				Task parentTask = new Task();
 				parentTask.setId(task.getParentTaskId());
 				task.setParentProjectId(testProject.getId());
-				if (index == 6) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_IN_PROGRESS);
-				} else if (index == 12) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_WAITING);
+				if (index == 12) {
+					task.setStatus(DefaultValConstants.STATUS_IN_PROGRESS);
 				} else {
-					task.setStatus(DefaultValConstants.TASK_STATUS_COMPLETE);
+					task.setStatus(DefaultValConstants.STATUS_COMPLETE);
 				}
 
 				taskManagementService.createTask(parentTask, task);
@@ -244,6 +281,7 @@ public class TaskManagementServiceTest extends TestCase {
 		Task task = taskManagementService.getCurrentTaskOfProject(testProject.getId());
 
 		assertTrue(!taskManagementService.completeTask(task.getId()).hasError());
+		assertTrue(testProject.getStatus() == DefaultValConstants.STATUS_COMPLETE);
 	}
 
 	public void testCreateProject() {
@@ -263,14 +301,14 @@ public class TaskManagementServiceTest extends TestCase {
 		taskManagementService.createProject(testProject);
 
 		int index = 0;
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			index++;
 			if (task.hasParentTask()) {
 				Task parentTask = new Task();
 				parentTask.setId(task.getParentTaskId());
 				task.setParentProjectId(testProject.getId());
 				if (index == 10) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_IN_PROGRESS);
+					task.setStatus(DefaultValConstants.STATUS_IN_PROGRESS);
 				}
 				taskManagementService.createTask(parentTask, task);
 			} else {
@@ -292,14 +330,14 @@ public class TaskManagementServiceTest extends TestCase {
 		taskManagementService.createProject(testProject);
 
 		int index = 0;
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			index++;
 			if (task.hasParentTask()) {
 				Task parentTask = new Task();
 				parentTask.setId(task.getParentTaskId());
 				task.setParentProjectId(testProject.getId());
 				if (index == 10) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_IN_PROGRESS);
+					task.setStatus(DefaultValConstants.STATUS_IN_PROGRESS);
 				}
 				taskManagementService.createTask(parentTask, task);
 			} else {
@@ -322,7 +360,7 @@ public class TaskManagementServiceTest extends TestCase {
 
 		int counter = 0;
 		int taskId = 0;
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			if (++counter == 10) {
 				taskId = task.getId();
 			}
@@ -352,16 +390,16 @@ public class TaskManagementServiceTest extends TestCase {
 		taskManagementService.createProject(testProject);
 
 		int index = 0;
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			index++;
 			if (task.hasParentTask()) {
 				Task parentTask = new Task();
 				parentTask.setId(task.getParentTaskId());
 				task.setParentProjectId(testProject.getId());
 				if (index == 12) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_IN_PROGRESS);
+					task.setStatus(DefaultValConstants.STATUS_IN_PROGRESS);
 				} else {
-					task.setStatus(DefaultValConstants.TASK_STATUS_COMPLETE);
+					task.setStatus(DefaultValConstants.STATUS_COMPLETE);
 				}
 				taskManagementService.createTask(parentTask, task);
 			} else {
@@ -384,7 +422,7 @@ public class TaskManagementServiceTest extends TestCase {
 
 		int counter = 0;
 		int taskId = 0;
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			if (++counter == 12) {
 				taskId = task.getId();
 			}
@@ -411,19 +449,19 @@ public class TaskManagementServiceTest extends TestCase {
 		taskManagementService.createProject(testProject);
 
 		int index = 0;
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			index++;
 			if (task.hasParentTask()) {
 				Task parentTask = new Task();
 				parentTask.setId(task.getParentTaskId());
 				task.setParentProjectId(testProject.getId());
 				if (index == 19) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_IN_PROGRESS);
+					task.setStatus(DefaultValConstants.STATUS_IN_PROGRESS);
 				} else if (index == 16 || index == 6 || index == 12 || index == 20) {
 
-					task.setStatus(DefaultValConstants.TASK_STATUS_WAITING);
+					task.setStatus(DefaultValConstants.STATUS_WAITING);
 				} else {
-					task.setStatus(DefaultValConstants.TASK_STATUS_COMPLETE);
+					task.setStatus(DefaultValConstants.STATUS_COMPLETE);
 				}
 				taskManagementService.createTask(parentTask, task);
 			} else {
@@ -445,16 +483,16 @@ public class TaskManagementServiceTest extends TestCase {
 		taskManagementService.createProject(testProject);
 
 		int index = 0;
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			index++;
 			if (task.hasParentTask()) {
 				Task parentTask = new Task();
 				parentTask.setId(task.getParentTaskId());
 				task.setParentProjectId(testProject.getId());
 				if (index < 19) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_COMPLETE);
+					task.setStatus(DefaultValConstants.STATUS_COMPLETE);
 				} else if (index == 19) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_IN_PROGRESS);
+					task.setStatus(DefaultValConstants.STATUS_IN_PROGRESS);
 				}
 				taskManagementService.createTask(parentTask, task);
 			} else {
@@ -477,7 +515,7 @@ public class TaskManagementServiceTest extends TestCase {
 
 		int counter = 0;
 		int taskId = 0;
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			if (++counter == 15) {
 				taskId = task.getId();
 			}
@@ -498,6 +536,35 @@ public class TaskManagementServiceTest extends TestCase {
 		assertTrue(DateUtility.getInstance().parseDate("2019-02-11").compareTo(taskEndDate) == 0);
 	}
 
+	public void testGetMiddleParentEndDate() {
+		Project testProject = new Project();
+		this.copyProject(this.project, testProject);
+
+		taskManagementService.createProject(testProject);
+
+		int counter = 0;
+		int taskId = 0;
+		for (Task task : this.project.getBranches().values()) {
+			if (++counter == 2) {
+				taskId = task.getId();
+			}
+			if (task.hasParentTask()) {
+				Task parentTask = new Task();
+				parentTask.setId(task.getParentTaskId());
+				task.setParentProjectId(testProject.getId());
+				taskManagementService.createTask(parentTask, task);
+			} else {
+				task.setParentProjectId(testProject.getId());
+				taskManagementService.createTask(task, testProject.getId());
+
+			}
+		}
+
+		Date taskEndDate = taskManagementService.getTaskEndDate(taskId);
+
+		assertTrue(DateUtility.getInstance().parseDate("2019-02-13").compareTo(taskEndDate) == 0);
+	}
+
 	public void testGetNextLowerStack() {
 		Project testProject = new Project();
 		this.copyProject(this.project, testProject);
@@ -505,17 +572,17 @@ public class TaskManagementServiceTest extends TestCase {
 		taskManagementService.createProject(testProject);
 
 		int index = 0;
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			index++;
 			if (task.hasParentTask()) {
 				Task parentTask = new Task();
 				parentTask.setId(task.getParentTaskId());
 				task.setParentProjectId(testProject.getId());
 				if (index == 10 || index == 13 || index == 9 || index == 14) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_COMPLETE);
+					task.setStatus(DefaultValConstants.STATUS_COMPLETE);
 				}
 				if (index == 4) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_IN_PROGRESS);
+					task.setStatus(DefaultValConstants.STATUS_IN_PROGRESS);
 				}
 				taskManagementService.createTask(parentTask, task);
 			} else {
@@ -537,18 +604,18 @@ public class TaskManagementServiceTest extends TestCase {
 		taskManagementService.createProject(testProject);
 
 		int index = 0;
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			index++;
 			if (task.hasParentTask()) {
 				Task parentTask = new Task();
 				parentTask.setId(task.getParentTaskId());
 				task.setParentProjectId(testProject.getId());
 				if (index == 10 || index == 13 || index == 9) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_COMPLETE);
+					task.setStatus(DefaultValConstants.STATUS_COMPLETE);
 				} else if (index == 14) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_IN_PROGRESS);
+					task.setStatus(DefaultValConstants.STATUS_IN_PROGRESS);
 				} else {
-					task.setStatus(DefaultValConstants.TASK_STATUS_WAITING);
+					task.setStatus(DefaultValConstants.STATUS_WAITING);
 				}
 				taskManagementService.createTask(parentTask, task);
 			} else {
@@ -570,19 +637,19 @@ public class TaskManagementServiceTest extends TestCase {
 		taskManagementService.createProject(testProject);
 
 		int index = 0;
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			index++;
 			if (task.hasParentTask()) {
 				Task parentTask = new Task();
 				parentTask.setId(task.getParentTaskId());
 				task.setParentProjectId(testProject.getId());
 				if (index == 20) {
-					task.setStatus(DefaultValConstants.TASK_STATUS_IN_PROGRESS);
+					task.setStatus(DefaultValConstants.STATUS_IN_PROGRESS);
 				} else if (index == 16 || index == 6 || index == 12) {
 
-					task.setStatus(DefaultValConstants.TASK_STATUS_WAITING);
+					task.setStatus(DefaultValConstants.STATUS_WAITING);
 				} else {
-					task.setStatus(DefaultValConstants.TASK_STATUS_COMPLETE);
+					task.setStatus(DefaultValConstants.STATUS_COMPLETE);
 				}
 				taskManagementService.createTask(parentTask, task);
 			} else {
@@ -603,7 +670,7 @@ public class TaskManagementServiceTest extends TestCase {
 
 		taskManagementService.createProject(testProject);
 
-		for (Task task : this.project.getTasks().values()) {
+		for (Task task : this.project.getBranches().values()) {
 			if (task.hasParentTask()) {
 				Task parentTask = new Task();
 				parentTask.setId(task.getParentTaskId());
@@ -643,9 +710,9 @@ public class TaskManagementServiceTest extends TestCase {
 	}
 
 	private void generateTasks(Project project) {
-		Map<Integer, Task> tasks = new LinkedHashMap<Integer, Task>();
+		LinkedMap<Integer, Task> tasks = new LinkedMap<Integer, Task>();
 
-		project.setTasks(tasks);
+		project.setBranches(tasks);
 
 		Task task1 = new Task();
 		task1.setName("task1");

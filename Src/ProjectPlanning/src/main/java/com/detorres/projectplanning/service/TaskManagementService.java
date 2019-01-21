@@ -34,8 +34,6 @@ public interface TaskManagementService {
 
 	public Map<Integer, Task> loadTasks(int taskId);
 
-	public ServiceResponse<Void> removeTask(int id);
-
 	public Task getTaskByName(String name);
 
 	public Project getProjectByName(String name);

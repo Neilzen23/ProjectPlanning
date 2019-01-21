@@ -1,12 +1,13 @@
 package com.detorres.projectplanning.vo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ControllerResponse<T> {
 
 	private T data;
 
-	private List<String> error;
+	private List<String> error = new ArrayList<String>();
 
 	public T getData() {
 		return data;
@@ -26,11 +27,7 @@ public class ControllerResponse<T> {
 
 	public boolean hasError() {
 
-		if (error.isEmpty()) {
-			return false;
-		}
-
-		return true;
+		return !error.isEmpty();
 	}
 
 }

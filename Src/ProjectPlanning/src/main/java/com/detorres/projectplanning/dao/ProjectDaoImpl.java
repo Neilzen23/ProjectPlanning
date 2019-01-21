@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.detorres.projectplanning.constants.DefaultValConstants;
 import com.detorres.projectplanning.entity.Project;
 
 public class ProjectDaoImpl implements ProjectDao {
@@ -32,6 +33,11 @@ public class ProjectDaoImpl implements ProjectDao {
 		}
 
 		return projects;
+	}
+
+	@Override
+	public void updateStatus(int id) {
+		projectData.get(id).setStatus(DefaultValConstants.STATUS_COMPLETE);
 	}
 
 }

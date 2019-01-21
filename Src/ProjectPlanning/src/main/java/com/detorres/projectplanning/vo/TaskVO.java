@@ -1,25 +1,34 @@
 package com.detorres.projectplanning.vo;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.apache.commons.collections4.map.LinkedMap;
 
-public class TaskVO extends VO<TaskVO> {
+public class TaskVO {
 
-	private Map<Integer, TaskVO> dependentVOs = new HashMap<Integer, TaskVO>();
+	private LinkedMap<Integer, TaskVO> branches = new LinkedMap<Integer, TaskVO>();
 
-	private long duration;
+	private String duration;
 
 	private String endDate;
 
+	private int id;
+
 	private String startDate;
 
-	private boolean complete;
+	private String status;
 
-	public Map<Integer, TaskVO> getDependentVOs() {
-		return dependentVOs;
+	private String name;
+
+	private boolean isParent;
+
+	private int parentTaskId;
+
+	private int projectId;
+
+	public LinkedMap<Integer, TaskVO> getBranches() {
+		return branches;
 	}
 
-	public long getDuration() {
+	public String getDuration() {
 		return duration;
 	}
 
@@ -27,15 +36,27 @@ public class TaskVO extends VO<TaskVO> {
 		return endDate;
 	}
 
+	public int getId() {
+		return id;
+	}
+
 	public String getStartDate() {
 		return startDate;
 	}
 
-	public void setDependentVOs(Map<Integer, TaskVO> dependentVOs) {
-		this.dependentVOs = dependentVOs;
+	public String getStatus() {
+		return status;
 	}
 
-	public void setDuration(long duration) {
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public void setBranches(LinkedMap<Integer, TaskVO> branches) {
+		this.branches = branches;
+	}
+
+	public void setDuration(String duration) {
 		this.duration = duration;
 	}
 
@@ -43,16 +64,49 @@ public class TaskVO extends VO<TaskVO> {
 		this.endDate = endDate;
 	}
 
+	public void setId(int id) {
+		this.id = id;
+	}
+
 	public void setStartDate(String startDate) {
 		this.startDate = startDate;
 	}
 
-	public boolean isComplete() {
-		return complete;
+	public String getName() {
+		return name;
 	}
 
-	public void setComplete(boolean complete) {
-		this.complete = complete;
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public int getParentTaskId() {
+		return parentTaskId;
+	}
+
+	public void setParentTaskId(int parentTaskId) {
+		this.parentTaskId = parentTaskId;
+	}
+
+	public int getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(int projectId) {
+		this.projectId = projectId;
+	}
+
+	public boolean hasBranches() {
+		return !branches.isEmpty();
+	}
+
+	@Override
+	public String toString() {
+		if (hasBranches()) {
+			return "*** " + this.getName() + " " + this.getDuration() + " [" + this.getStartDate() + " -> " + this.getEndDate() + "] - " + this.getStatus();
+		} else {
+			return this.getName() + " " + this.getDuration() + " [" + this.getStartDate() + " -> " + this.getEndDate() + "] - " + this.getStatus();
+		}
 	}
 
 }

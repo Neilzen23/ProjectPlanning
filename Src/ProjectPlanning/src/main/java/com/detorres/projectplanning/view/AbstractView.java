@@ -18,8 +18,6 @@ public abstract class AbstractView {
 
 	protected abstract void displayOutput(String output);
 
-	protected abstract void displayOutput(StringBuilder output);
-
 	protected String captureUserInput() {
 		try {
 			return br.readLine();

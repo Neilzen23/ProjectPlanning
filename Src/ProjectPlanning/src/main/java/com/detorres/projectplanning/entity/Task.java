@@ -74,7 +74,7 @@ public class Task {
 	}
 
 	public boolean isComplete() {
-		return status == DefaultValConstants.TASK_STATUS_COMPLETE;
+		return status == DefaultValConstants.STATUS_COMPLETE;
 	}
 
 	public boolean isBranch() {
@@ -118,11 +118,11 @@ public class Task {
 	}
 
 	public boolean inProgress() {
-		return status == DefaultValConstants.TASK_STATUS_IN_PROGRESS;
+		return status == DefaultValConstants.STATUS_IN_PROGRESS;
 	}
 
 	public boolean isWaiting() {
-		return status == DefaultValConstants.TASK_STATUS_WAITING;
+		return status == DefaultValConstants.STATUS_WAITING;
 	}
 
 }

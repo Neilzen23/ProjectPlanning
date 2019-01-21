@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+import org.apache.commons.collections4.map.LinkedMap;
+
 import com.detorres.projectplanning.constants.DefaultValConstants;
 import com.detorres.projectplanning.constants.ValidatorConstants;
 import com.detorres.projectplanning.dao.MappingDao;
@@ -66,6 +68,11 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 				}
 			}
 
+			Task nextTask = this.getNextTaskOfProject(task.getParentProjectId());
+			if (nextTask != null) {
+				this.taskDao.updateStatus(nextTask.getId(), DefaultValConstants.STATUS_IN_PROGRESS);
+			}
+
 			taskDao.completeTask(task.getId());
 
 			// Complete Parent task
@@ -87,8 +94,17 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 				}
 			}
 
+			Task nextTask = this.getNextTaskOfProject(task.getParentProjectId());
+			if (nextTask != null) {
+				this.taskDao.updateStatus(nextTask.getId(), DefaultValConstants.STATUS_IN_PROGRESS);
+			}
+
 			taskDao.completeTask(task.getId());
 
+		}
+
+		if (this.getCurrentTaskOfProject(task.getParentProjectId()) == null) {
+			this.projectDao.updateStatus(task.getParentProjectId());
 		}
 
 		return response;
@@ -102,7 +118,7 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 	@Override
 	public void createTask(Task task, int projectId) {
 		if (!projectMappingDao.containsMapping(projectId)) {
-			task.setStatus(DefaultValConstants.TASK_STATUS_IN_PROGRESS);
+			task.setStatus(DefaultValConstants.STATUS_IN_PROGRESS);
 		}
 
 		this.taskDao.addTask(task);
@@ -115,21 +131,22 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 
 		Task currentActive = this.getCurrentTaskOfProject(subTask.getParentProjectId());
 
-		if (currentActive.getId() == subTask.getParentTaskId()) {
-			subTask.setStatus(DefaultValConstants.TASK_STATUS_IN_PROGRESS);
+		if (currentActive != null && currentActive.getId() == subTask.getParentTaskId()) {
+			subTask.setStatus(DefaultValConstants.STATUS_IN_PROGRESS);
 		} else {
-			subTask.setStatus(DefaultValConstants.TASK_STATUS_WAITING);
+			subTask.setStatus(DefaultValConstants.STATUS_WAITING);
 		}
 
 	}
 
 	@Override
 	public void createTask(Task parentTask, Task subTask) {
-		if (subTask.getStatus() == DefaultValConstants.TASK_STATUS_UNDEFINED) {
+		if (subTask.getStatus() == DefaultValConstants.STATUS_UNDEFINED) {
 			this.updateParentStatus(parentTask, subTask);
 		}
 		this.taskDao.addTask(subTask);
 		this.taskDao.addDependentTask(parentTask.getId(), subTask);
+		this.taskDao.removeHours(parentTask.getId());
 		this.projectTaskMappingDao.addMapping(subTask.getParentProjectId(), subTask.getId());
 
 	}
@@ -158,6 +175,10 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 			if (taskId != 0) {
 				break;
 			}
+		}
+
+		if (taskId == 0) {
+			return null;
 		}
 
 		return taskDao.getById(taskId);
@@ -189,9 +210,13 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 		Date startDate = project.getStartDate();
 		long duration = 0L;
 
-		for (Integer taskId : this.projectTaskMappingDao.getMappingById(id)) {
+		List<Integer> taskIds = this.projectTaskMappingDao.getMappingById(id);
 
-			duration += this.taskDao.getById(taskId).getDuration();
+		if (taskIds != null) {
+			for (Integer taskId : this.projectTaskMappingDao.getMappingById(id)) {
+
+				duration += this.taskDao.getById(taskId).getDuration();
+			}
 		}
 
 		return DateUtility.getInstance().computeEndDate(startDate, duration);
@@ -205,23 +230,40 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 
 	@Override
 	public Date getTaskEndDate(int id) {
-
 		Task task = taskDao.getById(id);
 
 		Project project = projectDao.getProjectById(task.getParentProjectId());
 
-		Long duration = 0L;
-
-		for (Task currentTask : this.getTaskTree(task)) {
-			duration += currentTask.getDuration();
-		}
+		Long duration = this.totalDurationOfBranch(task);
 
 		return DateUtility.getInstance().computeEndDate(project.getStartDate(), duration);
 	}
 
+	private long totalDurationOfBranch(Task task) {
+		Long duration = 0L;
+		for (Task currentTask : this.getTaskTree(task)) {
+			duration += currentTask.getDuration();
+		}
+
+		return duration;
+	}
+
 	@Override
 	public Project loadProject(int id) {
-		return projectDao.getProjectById(id);
+
+		Project project = projectDao.getProjectById(id);
+
+		project.setBranches(this.loadProjectTasks(project.getId()));
+		project.setEndDate(this.getProjectEndDate(id));
+
+		Long duration = 0L;
+		for (Task task : project.getBranches().values()) {
+			duration += totalDurationOfBranch(task);
+		}
+
+		project.setDuration(duration);
+
+		return project;
 	}
 
 	@Override
@@ -230,14 +272,20 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 	}
 
 	@Override
-	public Map<Integer, Task> loadProjectTasks(int id) {
+	public LinkedMap<Integer, Task> loadProjectTasks(int id) {
 
-		Map<Integer, Task> taskMap = new LinkedHashMap<Integer, Task>();
-		for (Integer taskId : projectTaskMappingDao.getMappingById(id)) {
+		LinkedMap<Integer, Task> taskMap = new LinkedMap<Integer, Task>();
+		List<Integer> taskIds = projectMappingDao.getMappingById(id);
+
+		if (taskIds == null) {
+			return taskMap;
+		}
+
+		for (Integer taskId : taskIds) {
 			Task task = this.loadTask(taskId);
 
 			if (taskMap.containsKey(task.getParentTaskId())) {
-				taskMap.get(task.getParentTaskId()).getBranches().put(task.getId(), task);
+				taskMap.get(Integer.valueOf(task.getParentTaskId())).getBranches().put(task.getId(), task);
 			}
 
 			taskMap.put(task.getId(), task);
@@ -248,8 +296,39 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 
 	@Override
 	public Task loadTask(int id) {
+		Task task = taskDao.getById(id);
 
-		return taskDao.getById(id);
+		if (task.getDuration() == 0) {
+			task.setDuration(this.totalDurationOfBranch(task));
+		}
+
+		task.setEndDate(this.getTaskEndDate(id));
+		task.setStartDate(DateUtility.getInstance().computeStartDate(task.getEndDate(), task.getDuration()));
+
+		for (Task branch : task.getBranches().values()) {
+			if (branch.getDuration() == 0) {
+				branch.setDuration(this.totalDurationOfBranch(branch));
+			}
+			branch.setEndDate(this.getTaskEndDate(branch.getId()));
+			branch.setStartDate(DateUtility.getInstance().computeStartDate(branch.getEndDate(), branch.getDuration()));
+		}
+
+		return task;
+	}
+
+	private long taskDuration(Task task, long duration) {
+		duration += task.getDuration();
+		if (task.hasBranches()) {
+			for (Task branch : task.getBranches().values()) {
+				if (branch.hasBranches()) {
+					duration += this.taskDuration(branch, duration);
+				}
+
+				duration += branch.getDuration();
+			}
+		}
+
+		return duration;
 	}
 
 	@Override
@@ -269,55 +348,16 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 		return taskMap;
 	}
 
-	@Override
-	public ServiceResponse<Void> removeTask(int id) {
-		ServiceResponse<Void> response = new ServiceResponse<Void>();
-		Task task = this.taskDao.getById(id);
-
-		if (task.isComplete()) {
-			response.addError(ValidatorConstants.INVALID_REMOVE_TASK);
-
-			return response;
-		}
-
-		if (task.hasBranches()) {
-			projectTaskMappingDao.removeDependentTasks(task.getParentProjectId(), task.getId());
-
-			Stack<Integer> stackBranches = new Stack<Integer>();
-			this.getSubTaskIdTraverseDown(task, stackBranches);
-
-			while (!stackBranches.isEmpty()) {
-				int branchId = stackBranches.pop();
-
-				taskDao.removeTask(branchId);
-			}
-		}
-
-		taskDao.removeTask(id);
-
-		return response;
-	}
-
 	private int getBottomRightOfTree(Task task, int bottomRight) {
 
 		if (task.hasBranches()) {
 			Integer lastKey = task.getBranches().lastKey();
 			bottomRight = this.getBottomRightOfTree(task.getBranches().get(lastKey), lastKey);
+		} else {
+			bottomRight = task.getId();
 		}
 
 		return bottomRight;
-	}
-
-	private Long getDurationOfSubTask(Task task, Long duration) {
-		duration += task.getDuration();
-
-		if (task.hasBranches()) {
-			for (Task subTask : task.getBranches().values()) {
-				this.getDurationOfSubTask(subTask, duration);
-			}
-		}
-
-		return duration;
 	}
 
 	private void getSubTaskIdTraverseDown(Task task, Stack<Integer> taskIdStack) {
@@ -333,6 +373,10 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 	}
 
 	private void getSubTaskIdTraverseUp(Task task, Stack<Integer> taskIdStack, int mainTaskId, int previousParentTaskId) {
+		if (task == null) {
+			return;
+		}
+
 		if (task.hasBranches()) {
 			for (Task subTask : task.getBranches().values()) {
 				if (subTask.getId() == previousParentTaskId) {
@@ -365,6 +409,10 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 	private Stack<Integer> getTaskStackTree(Task task) {
 
 		Stack<Integer> taskIdStack = new Stack<Integer>();
+
+		if (task == null) {
+			return taskIdStack;
+		}
 
 		this.getSubTaskIdTraverseUp(taskDao.getById(task.getId()), taskIdStack, task.getId(), 0);
 
@@ -399,7 +447,7 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 
 	private Task nextLeaf(Task task) {
 
-		Task nextTask = null;
+		Task nextTask = task;
 
 		if (!task.hasParentTask()) {
 			Stack<Integer> taskIdStack = new Stack<Integer>();

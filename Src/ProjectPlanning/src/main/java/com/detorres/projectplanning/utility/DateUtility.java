@@ -2,6 +2,7 @@ package com.detorres.projectplanning.utility;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.commons.lang3.time.DateUtils;
@@ -34,18 +35,53 @@ public class DateUtility {
 			days++;
 		}
 
-		int daysPerWeek = userPreference.getDaysPerWeek();
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(startDate);
+		Date tempDate = cal.getTime();
+		int x = 0;
+		while (x < convertedDays) {
+			tempDate = DateUtils.addDays(tempDate, 1);
+			if (this.isWorkingDay(tempDate)) {
+				x++;
+			}
+		}
+		return tempDate;
+	}
 
-		if (Math.round((double) days / (double) daysPerWeek) % 2 != 0) {
-			days += (days / daysPerWeek) * 2;
+	public boolean isWorkingDay(Date date) {
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(date);
+		if (cal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY || cal.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY) {
+			return false;
 		} else {
-			days += (Math.round((double) days / (double) daysPerWeek)) * 2D;
+			return true;
 		}
 
-		return DateUtils.addDays(startDate, days);
+	}
+
+	public Date computeStartDate(Date endDate, long duration) {
+		// Convert seconds into days
+		double convertedDays = duration / 60D / 60D / userPreference.getHoursPerDay();
+		int days = (int) convertedDays;
+
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(endDate);
+		Date tempDate = cal.getTime();
+		int x = 0;
+		while (x < convertedDays) {
+			tempDate = DateUtils.addDays(tempDate, -1);
+			if (this.isWorkingDay(tempDate)) {
+				x++;
+			}
+		}
+
+		return tempDate;
 	}
 
 	public String formatDate(Date date) {
+		if (date == null) {
+			return null;
+		}
 		return format.format(date);
 	}
 
